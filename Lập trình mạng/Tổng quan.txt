@@ -1,0 +1,135 @@
+1. Bản chất của Lập trình mạng
+Khi bạn làm Web/App thông thường với HTTP (như gọi REST API), mô hình là Request - Response: Client hỏi 1 câu, Server trả lời 1 câu rồi ngắt hoặc chờ câu tiếp theo. Server không thể tự dưng gửi dữ liệu cho Client nếu Client không hỏi trước.
+Trong Lập trình mạng (Socket Programming), bạn làm việc trực tiếp ở tầng Transport (TCP/UDP):
+Ống dẫn hai chiều (Full-Duplex): Khi kết nối TCP được thiết lập, một "đường ống" mở ra giữ nguyên giữa Client và Server. Bất kỳ bên nào cũng có thể chủ động bơm dữ liệu (send/write) vào ống bất cứ lúc nào.
+
+Mọi thứ là Byte (byte[]): Không có khái niệm JSON, String hay File sẵn có. Mạng chỉ truyền đi một dòng chảy các byte (0 và 1). Nhiệm vụ của bạn là Đóng gói (Serialize) dữ liệu thành byte để gửi đi, và Giải nén (Deserialize) byte nhận được về lại dữ liệu gốc.
+
+Luồng hoạt động của TCP và UDP Socket
+Vòng đời & Thứ tự gọi hàm Socket
+So sánh tương tác Client - Server giữa TCP và UDP
+#########################################################################################
+TCP hướng kết nối
+Bước 1 : Khởi tạo Socket (TCP)
+-> Server gọi socket() và bind(IP, Port) để gắn địa chỉ cố định trên máy chủ. Client chỉ cần gọi socket() (hệ điều hành sẽ tự cấp phát cổng tạm Ephemeral Port khi kết nối).
+
+Trạng thái Client
+socket(AF_INET, SOCK_STREAM)
+
+Trạng thái Server
+socket() → bind(IP, Port)
+
+Gói tin & Cơ chế đường truyền
+Chưa phát sinh gói tin mạng (Cấp phát File Descriptor trong Kernel)
+
+Bước 2: Lắng nghe kết nối (Listen)
+-> Server gọi listen(backlog) để chuyển Socket sang trạng thái chờ kết nối thụ động (LISTEN), khởi tạo hàng đợi kết nối đang bắt tay (SYN Queue) và đã hoàn tất (Accept Queue).
+
+Trạng thái Client
+CLOSED (Chưa gọi connect)
+
+Trạng thái Server
+listen(fd, backlog) → LISTEN
+
+Gói tin & Cơ chế đường truyền
+Không có gói tin — Kernel chuẩn bị hàng đợi nhận cờ SYN
+
+Bước 3: Kết nối (3-Way Handshake)  (Blocking tại connect() & accept())
+-> Client gọi connect(Server_IP, Port) gửi cờ SYN. Server đang chặn ở hàm accept() nhận được yêu cầu, hoàn tất bắt tay 3 bước và tạo ra một ClientSocket mới dành riêng cho Client này.
+
+Trạng thái Client
+connect() → ESTABLISHED
+
+Trạng thái Server
+accept() → Tạo Worker ClientSocket
+
+Gói tin & Cơ chế đường truyền
+SYN → SYN-ACK → ACK (Thiết lập Sequence Number hai chiều)
+
+Bước 4: Truyền dữ liệu (Request)
+-> Client đóng gói bản tin (Header + Payload) và gọi send() / write(). Server gọi recv() / read() trên luồng riêng (Worker Thread) để nhận dòng byte tuần tự.
+
+Trạng thái Client
+send(buf, len) / write()
+
+Trạng thái Server
+recv(client_fd, buf) [Blocking read]
+
+Gói tin & Cơ chế đường truyền
+TCP Segment [PSH, ACK] chứa Header + Payload; đảm bảo thứ tự & chống mất gói
+
+Bước 5: Phản hồi (Response / Broadcast)
+-> Server xử lý logic nghiệp vụ và gọi send() trên ClientSocket để trả kết quả về cho Client (hoặc lặp qua danh sách socket để đẩy tin nhắn cho mọi Client khác).
+
+Trạng thái Client
+recv(buf) nhận dữ liệu trả về
+
+Trạng thái Server
+send(client_fd, response)
+
+Gói tin & Cơ chế đường truyền
+TCP Segment [PSH, ACK] chiều Server → Client kèm cơ chế Flow Control
+
+Bước 6: Đóng kết nối (4-Way Teardown)
+-> Một trong hai bên gọi close(), gửi cờ FIN để chấm dứt phiên làm việc và giải phóng bộ nhớ đệm cùng cổng mạng.
+
+Trạng thái Client
+close(fd) → FIN_WAIT / TIME_WAIT
+
+Trạng thái Server
+close(client_fd) → CLOSED
+
+Gói tin & Cơ chế đường truyền
+FIN → ACK / FIN → ACK (Giải phóng Worker Socket, giữ Listen Socket)
+
+#########################################################################################
+UDP (Không kết nối)
+
+Bước 1: Khởi tạo Datagram Socket (UDP)
+-> Server gọi socket(SOCK_DGRAM) và bind(IP, Port) để mở cổng nhận gói tin. Client chỉ cần gọi socket(SOCK_DGRAM) mà không cần thiết lập kênh ảo.
+
+Trạng thái Client
+socket(AF_INET, SOCK_DGRAM)
+
+Trạng thái Server
+socket(SOCK_DGRAM) → bind(IP, Port)
+
+Gói tin & Cơ chế đường truyền
+Chưa phát sinh gói tin mạng (Khởi tạo UDP Endpoint độc lập)
+
+Bước 2: Chờ nhận gói tin (Recvfrom)    Blocking I/O (Không Listen/Accept)
+-> Server gọi trực tiếp hàm recvfrom() để chặn chờ dữ liệu tới cổng UDP. Không tồn tại bước listen() hay accept() và không sinh thêm Socket con cho từng Client.
+
+Trạng thái Client
+Sẵn sàng đóng gói Datagram
+
+Trạng thái Server
+recvfrom(fd, buf, &sender_addr)
+
+Gói tin & Cơ chế đường truyền
+Không có gói tin — Luồng Server tạm ngủ chờ Datagram đầu tiên
+
+Bước 3: Bắn gói tin (Connectionless)
+->  Client gọi sendto(data, Server_IP, Port) đẩy thẳng gói Datagram đi mà không cần thiết lập kết nối trước. Mỗi gói tin tự mang địa chỉ đích độc lập.
+
+Trạng thái Client
+sendto(fd, data, Server_IP, Port)
+
+Trạng thái Server
+recvfrom() thức dậy nhận dữ liệu + IP:Port
+
+Gói tin & Cơ chế đường truyền
+UDP Datagram (8-byte Header + Payload); gửi tức thì, không có ACK
+
+Bước 4: Phản hồi & Đóng (Reply & Close)
+-> Server nhận được cả dữ liệu lẫn địa chỉ IP:Port của người gửi từ hàm recvfrom(), dùng ngay địa chỉ đó để sendto() phản hồi lại tức thì
+
+Trạng thái Client
+recvfrom() nhận KQ → close()
+
+Trạng thái Server
+sendto(fd, reply, Sender_IP, Port)
+
+Gói tin & Cơ chế đường truyền
+UDP Datagram phản hồi độc lập; gọi close() chỉ hủy Descriptor nội bộ
+

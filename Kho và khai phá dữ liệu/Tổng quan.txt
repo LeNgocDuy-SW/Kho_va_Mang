@@ -1,0 +1,112 @@
+ Lộ trình : 5 chặng
+
+Chặng 1: Kiến trúc Kho dữ liệu & Mô hình Đa chiều (Data Warehouse) – Hiểu sự khác biệt giữa DB làm app (OLTP) và DB phân tích (OLAP), quy trình ETL, cách thiết kế Lược đồ hình sao (Star Schema) và khối dữ liệu (Data Cube).
+
+Chặng 2: Tiền xử lý dữ liệu (Data Preprocessing) – Xử lý dữ liệu bẩn, khuyết thiếu (missing), nhiễu (outlier) và chuẩn hóa dữ liệu (Normalization).
+
+Chặng 3: Khai phá luật kết hợp (Association Rules) – Bài toán giỏ hàng kinh điển với thuật toán Apriori và FP-Growth.
+
+Chặng 4: Phân lớp dữ liệu (Classification) – Học có giám sát với Cây quyết định (ID3 / C4.5), Naive Bayes, và KNN.
+
+Chặng 5: Phân cụm dữ liệu (Clustering) – Học không giám sát với K-Means, Phân cụm phân cấp và DBSCAN.
+
+Bài 1: Tư duy Kho dữ liệu — Tại sao Database bình thường là chưa đủ?
+
+##############################################################################################
+1. Bài toán thực tế : OLTP vs. OLAP
+Giả sử có 2 hệ thống : 
+1 - Theo dõi chi tiêu cá nhân
+2 - Gợi ý lịch trình du lịch
+
+Hàng ngày, người dùng mở app để thêm giao dịch mới, sửa lịch trình, xóa địa điểm
+=> Cơ sở dữ liệu đứng sau app lúc này (Như PostgresSQL hay SQLite) được gọi là hệ thống OLTP
+(Online Transaction Progressing - Xử lý giao dịch trực tuyến)
+
+Mục tiêu của OLTP: Xử lý cực nhanh các thao tác Thêm - Sửa - Xóa (Insert, Update, Delete) 
+của từng người theo thời gian thực, đảm bảo không bị lỗi hay trùng lặp dữ liệu 
+
+Nhưng vấn đề bắt đầu phát sinh khi : Sau 1 thời gian hoạt động, dữ liệu lên đến hàng chục triệu dòng.
+Lúc này muốn chạy một câu truy vấn phức tạp: Như thống kê chi tiêu ....
+- Nếu chạy câu lệnh JOIN qua 7 - 8 bảng trên chính DB PostgresSQL đang chạy app (OLTP), CPU của server sẽ tăng vọt lên 100% DB bị khóa bảng và người dùng đang dùng app sẽ bị treo máy ngay lập tức
+
+=> Đây là lúc người ta tách riêng 1 hệ thống thứ 2 gọi là OLAP (Online Analytical Processing - Xử lý phân tích trực tuyến) và nền tảng lưu trữ cảu nó chính là "Kho Dữ Liệu" (Data Warehouse)
+
+So sánh OLTP và OLAP
+Tiêu chí		OLTP(DB vận hành App) 			OLAP(Data Warehouse) 
+
+Mục đích chính		Vận hành ứng dụng hàng ngày		Phân tích, tìm quy luật, hỗ trợ ra quyết định
+
+Tháo tác chủ yếu 	INSERT, UPDATE, DELETE 			SELECT tổng hợp trên tập dữ liệu khổng lồ
+			(nhỏ liên tục) 
+
+Dữ liệu			Hiện hành(Current data), chi tiết 	Lịch sủ(Historical data - lưu nhiều năm), tổng hợp
+
+Thiết kế bảng		Chuẩn hóa cao (3NF) để tránh dữ thừa	Phi chuẩn hóa - ít bảng, chấp nhận dư thừa 
+			, nhiều bảng nhỏ			để SELECT cực nhanh
+
+
+##############################################################################################
+2. Kiến trúc bên trong Kho dữ liệu: Lược đồ hình sao (Star Schema)
+Trong DB thường chia nhỏ rất nhiều bảng nối tiếp nhau
+Nhưng trong OLAP, thiết kế phổ biến nhất là "Lược đồ hình sao" gồm 2 loại bảng chính:
+
+1/ Bảng sự kiện (Fact Table) - Nằm ở tâm ngôi sao:
+	Chứa các con số đo lường : Có thể cộng trư tính trung bình được
+	(Ví dụ : so_tien_chi, thoi_gian_luu_tru, so_km_di_chuyen) và các khóa ngoại trỏ ra các bảng xung quanh
+
+2/ Các bảng chiều(Dimension Tables) - Nằm ở các cạnh ngôi sao : 
+	Chứa ngữ cảnh trả lời cho các câu hỏi Ai, Ở đâu, khi nào, Cái gì 
+	Ví dụ  : Dim_ThoiGian, Dim_DiaDiem.....
+
+Ví dụ trực quan cho Kho dữ liệu Du lịch & Chi Tiêu:
+- Bảng Fact (Fact_ChiTieuDuLich) : id_thoi_gian, id_dia_diem, id_nguoi_dung, so_tien (Measure), so_gio_tham_quan (Measure).
+- Bảng Dimension (Dim_ThoiGian):id_thoi_gian, ngay, thu_trong_tuan, thang, quy, nam, co_phai_cuoi_tuan_khong.
+- Bảng Dimension (Dim_DiaDiem): id_dia_diem, ten_dia_diem, quan_huyen, tinh_thanh, loai_hinh (ẩm thực, văn hóa, thiên nhiên).
+
+Nhờ gom sẵn thang, quy, nam, tinh_thanh vào các bảng Dimension nagy từ lúc nạp dữ liệu (quy trình ETL)
+Khi cần thống kê doanh thu theo Quý và theo Tỉnh, Kho dữ liệu chỉ cần 1 phép JOIN duy nhất từ tâm ra cánh sao thay vì phải tính toán lại ngày tháng hay nối qua hàng chục bảng trung gian
+
+Bài tập : 
+Giả sử chúng ta thiết kế một Kho dữ liệu theo dõi hoạt động chạy bộ của hàng ngàn người dùng để phân tích thành tích và thể lực.
+Nếu dùng Lược đồ hình sao (Star Schema) với bảng trung tâm là Fact_BuoiChay:
+1 - Theo bạn, những con số nào nên đặt làm Measure (số liệu đo lường) nằm trong bảng Fact_BuoiChay?
+2 - Chúng ta nên tạo ra những bảng Dimension (bảng chiều ngữ cảnh) nào xung quanh nó để sau này phân tích được sâu nhất (ví dụ: chạy buổi sáng hay tối hiệu quả hơn, thời tiết hay cung đường ảnh hưởng thế nào)?
+
+
+câu 1 : Những số nên đặt làm Measure (Số liệu đo lường) trong bảng Fact_BuoiChay là :
+	so_quang_duong_chay, thoi_gian_chay
+Câu 2 : Bảng Dimension(Dim_ThoiGianChay) : id_thoi_gian, ngay, thang, buoi_trong_ngay..
+	Bảng Dimension(Dim_ThoiTiet): id_thoi_tiet, nhiet_do, nang_or_mua, co_suong_mu, 
+
+Lưu ý: Có 3 loại Measure
++) Additive Measure (Độ đo cộng được hoàn toàn) : là so_quang_duong_chay và thoi_gian_chay
+	=> Có thể cộng tổng quảng đường theo ngày thành tuần, cộng theo người dùng, hay cộng theo thời tiết đều 
+	đứng. Đây là Measure vàng trong OLAP
++) Non - Additive Measure (Độ đo không cộng được) : Chính là toc_do_trung_binh_1km
+	Vì : Giả sử hôm qua bạn chạy 2km với pace 5.0 (tức 5 phút/km, mất 10 phút), hôm nay chạy 10km với pace 6.0 	(mất 60 phút). Bạn không thể cộng tổng hai pace lại thành 11, và ngay cả lấy trung bình cộng $(5.0 + 6.0) / 	2 = 5.5$ cũng sai bản chất toán học (vì thực tế tổng 12km hết 70 phút $\rightarrow$ pace chuẩn phải là $70 	/ 12 \approx 5.83$ phút/km).
+
+	+) Cách xử lý chuẩn : Người ta thường chỉ lưu so_quang_duong_chay và thoi_gian_chay vào bảng Fact,
+	còn toc_do_trung_binh sẽ được tính động (Derived Measure) lúc truy vấn bằng công thức: SUM(thoi_gian_chay) 	/ SUM(so_quang_duong_chay).
+
++) Semi - Additive Measure (Độ đo bán cộng) : Cộng được theo chiều này nhưng không cộng được theo chiều thời gian
+	Ví dụ : so_du_tai_khoan hoặc so_luong_ton_kho. Bạn có thể cộng số dư của Ví A + Ví B trong cùng ngày hôm nay để biết tổng tiền mình có, nhưng không thể cộng số dư ngày 1 + số dư ngày 2 (vì tiền ngày 2 chính là tiền ngày 1 chuyển sang!).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
