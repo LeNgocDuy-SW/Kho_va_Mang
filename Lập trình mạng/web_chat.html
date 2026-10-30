@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Tour Crew - Messenger Chat Room</title>
+  
+  <!-- Hỗ trợ cài đặt thành App trên iPhone (PWA) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Tour Crew">
+  <meta name="theme-color" content="#8B2DF0">
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body, html { height: 100%; width: 100%; background: #0F172A; overflow: hidden; display: flex; justify-content: center; }
+
+    /* App Container */
+    #app {
+      width: 100%;
+      max-width: 500px;
+      height: 100%;
+      background: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 0 30px rgba(0,0,0,0.3);
+    }
+
+    /* 1. Header */
+    header {
+      height: 60px;
+      background: #FFFFFF;
+      border-bottom: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 10px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .header-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8B2DF0, #6366F1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .header-info { flex: 1; overflow: hidden; }
+    .header-title { font-size: 16px; font-weight: 700; color: #0F172A; display: flex; align-items: center; gap: 6px; }
+    .header-subtitle { font-size: 11px; color: #64748B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .header-actions { display: flex; gap: 6px; }
+    .btn-icon {
+      background: #F1F5F9;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      color: #334155;
+    }
+    .btn-icon:active { background: #E2E8F0; }
+
+    /* 2. Messages Stream */
+    #chat-stream {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #FFFFFF;
+      scroll-behavior: smooth;
+    }
+    
+    .msg-row { display: flex; width: 100%; align-items: flex-end; gap: 8px; }
+    .msg-row.me { justify-content: flex-end; }
+    .msg-row.other { justify-content: flex-start; }
+    .msg-row.system { justify-content: center; margin: 4px 0; }
+
+    /* Bubbles */
+    .bubble-col { display: flex; flex-direction: column; max-width: 78%; }
+    .msg-row.me .bubble-col { align-items: flex-end; }
+    .msg-row.other .bubble-col { align-items: flex-start; }
+
+    .msg-sender { font-size: 11px; font-weight: 600; color: #64748B; margin-bottom: 2px; margin-left: 4px; }
+    .msg-sender.admin { color: #DC2626; font-weight: 700; }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 20px;
+      font-size: 14.5px;
+      line-height: 1.35;
+      word-break: break-word;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .msg-row.me .bubble {
+      background: linear-gradient(135deg, #8B2DF0, #6366F1);
+      color: #FFFFFF;
+      border-bottom-right-radius: 4px;
+    }
+    .msg-row.other .bubble {
+      background: #F0F2F5;
+      color: #0F172A;
+      border-bottom-left-radius: 4px;
+    }
+    .msg-row.other.private .bubble {
+      background: #EDE9FE;
+      color: #5B21B6;
+    }
+
+    .msg-time { font-size: 10px; color: #94A3B8; margin-top: 2px; }
+    .msg-row.me .msg-time { margin-right: 4px; }
+    .msg-row.other .msg-time { margin-left: 4px; }
+
+    .system-pill {
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      color: #64748B;
+      font-size: 11.5px;
+      font-style: italic;
+      padding: 4px 14px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 90%;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    /* 3. Bottom Bar */
+    footer {
+      background: #FFFFFF;
+      border-top: 1px solid #E2E8F0;
+      padding: 8px 12px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .footer-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .recipient-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: #F1F5F9;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .recipient-tag.private {
+      background: #EDE9FE;
+      color: #7C3AED;
+    }
+    .quick-emojis { display: flex; gap: 4px; }
+    .emoji-btn {
+      background: none;
+      border: none;
+      font-size: 17px;
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .input-row { display: flex; align-items: center; gap: 8px; }
+    .input-pill {
+      flex: 1;
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      border-radius: 24px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+    }
+    .input-pill input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 14.5px;
+      color: #0F172A;
+    }
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8B2DF0, #6366F1);
+      border: none;
+      color: white;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(139, 45, 240, 0.4);
+    }
+
+    /* Modals & Drawers */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+    .modal-card {
+      background: #FFFFFF;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-banner {
+      background: linear-gradient(135deg, #8B2DF0, #6366F1);
+      color: white;
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .tab-header { display: flex; background: #F8FAFC; border-bottom: 1px solid #E2E8F0; }
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: none;
+      font-size: 13px;
+      font-weight: 700;
+      color: #64748B;
+      cursor: pointer;
+    }
+    .tab-btn.active { color: #8B2DF0; border-bottom: 2px solid #8B2DF0; }
+
+    .tab-body { padding: 18px 16px; display: none; flex-direction: column; gap: 10px; }
+    .tab-body.active { display: flex; }
+
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 12px; font-weight: 600; color: #475569; }
+    .form-group input, .form-group select {
+      padding: 10px 12px;
+      border: 1px solid #CBD5E1;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: #8B2DF0; }
+
+    .btn-submit {
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      background: #8B2DF0;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+
+    .demo-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+    .chip {
+      padding: 4px 8px;
+      background: #F1F5F9;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #334155;
+    }
+    .chip:hover { background: #EDE9FE; color: #8B2DF0; }
+
+    /* Drawer Online */
+    .drawer {
+      position: absolute;
+      top: 0; right: -100%; bottom: 0;
+      width: 280px;
+      background: #FFFFFF;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.25s ease;
+    }
+    .drawer.open { right: 0; }
+    .drawer-header {
+      padding: 14px;
+      border-bottom: 1px solid #E2E8F0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+    }
+    .drawer-list { flex: 1; overflow-y: auto; padding: 6px 0; }
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+    .drawer-item:hover { background: #F8FAFC; }
+    .drawer-item-info { flex: 1; }
+    .drawer-item-name { font-size: 13.5px; font-weight: 600; color: #0F172A; }
+    .drawer-item-role { font-size: 11px; color: #64748B; }
+
+    .admin-controls {
+      background: #FEF2F2;
+      border-top: 1px solid #FEE2E2;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .admin-btn {
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header>
+      <div class="header-avatar">💬</div>
+      <div class="header-info">
+        <div class="header-title" id="room-title">Tour Crew</div>
+        <div class="header-subtitle" id="room-subtitle">Đang kết nối...</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon" title="Xem lịch sử" onclick="openHistoryModal()">📜</button>
+        <button class="btn-icon" title="Người dùng Online" onclick="toggleDrawer()">👥</button>
+        <button class="btn-icon" title="Đăng xuất" onclick="logout()" style="color:#EF4444;">🚪</button>
+      </div>
+    </header>
+
+    <!-- Chat Stream -->
+    <div id="chat-stream"></div>
+
+    <!-- Bottom Bar -->
+    <footer>
+      <div class="footer-top">
+        <div class="recipient-tag" id="recipient-tag" onclick="resetToPublic()">
+          🌐 Tất cả phòng
+        </div>
+        <div class="quick-emojis">
+          <button class="emoji-btn" onclick="addEmoji('💯')">💯</button>
+          <button class="emoji-btn" onclick="addEmoji('🍗')">🍗</button>
+          <button class="emoji-btn" onclick="addEmoji('🍔')">🍔</button>
+          <button class="emoji-btn" onclick="addEmoji('👍')">👍</button>
+          <button class="emoji-btn" onclick="addEmoji('😂')">😂</button>
+          <button class="emoji-btn" onclick="addEmoji('❤️')">❤️</button>
+          <button class="emoji-btn" onclick="addEmoji('🔥')">🔥</button>
+        </div>
+      </div>
+      <div class="input-row">
+        <div class="input-pill">
+          <input type="text" id="msg-input" placeholder="Aa Nhập tin nhắn..." autocomplete="off">
+        </div>
+        <button class="send-btn" onclick="sendMessage()">✈</button>
+      </div>
+    </footer>
+
+    <!-- Online Users Drawer -->
+    <div class="drawer" id="online-drawer">
+      <div class="drawer-header">
+        <span>👥 Trực tuyến (<span id="online-count">0</span>)</span>
+        <button class="btn-icon" onclick="toggleDrawer()" style="width:28px;height:28px;">✕</button>
+      </div>
+      <div class="drawer-list" id="drawer-list"></div>
+      
+      <div class="admin-controls" id="admin-controls" style="display:none;">
+        <div style="font-size:11px;font-weight:700;color:#991B1B;">👑 TÁC VỤ QUẢN TRỊ VIÊN</div>
+        <button class="admin-btn" style="background:#EF4444;" onclick="adminAction('kick')">🚫 Kick User được chọn</button>
+        <button class="admin-btn" style="background:#F59E0B;" onclick="adminAction('mute')">🔇 Cấm chat (Mute)</button>
+        <button class="admin-btn" style="background:#10B981;" onclick="adminAction('unmute')">🔊 Mở chat (Unmute)</button>
+        <button class="admin-btn" style="background:#64748B;" onclick="adminAction('clear')">🗑 Xóa sạch lịch sử</button>
+      </div>
+    </div>
+
+    <!-- Auth Modal (Login / Register) -->
+    <div class="modal-overlay active" id="auth-modal">
+      <div class="modal-card">
+        <div class="modal-banner">
+          <h2 style="font-size:20px;font-weight:800;">TOUR CREW CHAT</h2>
+          <p style="font-size:12px;opacity:0.9;margin-top:2px;">Chat Socket TCP • Web & Mobile App</p>
+        </div>
+        <div class="tab-header">
+          <button class="tab-btn active" id="tab-login-btn" onclick="switchTab('login')">🔑 ĐĂNG NHẬP</button>
+          <button class="tab-btn" id="tab-reg-btn" onclick="switchTab('reg')">📝 ĐĂNG KÝ</button>
+        </div>
+
+        <!-- Login Tab -->
+        <div class="tab-body active" id="login-tab">
+          <div class="demo-chips">
+            <span class="chip" onclick="quickFill('admin', '123')">👑 admin</span>
+            <span class="chip" onclick="quickFill('duy', '123')">👤 duy</span>
+            <span class="chip" onclick="quickFill('hai', '123')">👤 hai</span>
+            <span class="chip" onclick="quickFill('long', '123')">👤 long</span>
+          </div>
+          <div class="form-group">
+            <label>Tài khoản</label>
+            <input type="text" id="login-user" value="admin" placeholder="admin / duy / hai...">
+          </div>
+          <div class="form-group">
+            <label>Mật khẩu</label>
+            <input type="password" id="login-pass" value="123">
+          </div>
+          <button class="btn-submit" onclick="doLogin()">Đăng nhập vào phòng ➔</button>
+        </div>
+
+        <!-- Register Tab -->
+        <div class="tab-body" id="reg-tab">
+          <div class="form-group">
+            <label>Tài khoản mới</label>
+            <input type="text" id="reg-user" placeholder="Tên tài khoản...">
+          </div>
+          <div class="form-group">
+            <label>Mật khẩu</label>
+            <input type="password" id="reg-pass">
+          </div>
+          <div class="form-group">
+            <label>Xác nhận mật khẩu</label>
+            <input type="password" id="reg-conf-pass">
+          </div>
+          <div class="form-group">
+            <label>Phân quyền</label>
+            <select id="reg-role" onchange="checkAdminSecret()">
+              <option value="USER">👤 USER (Thành viên)</option>
+              <option value="ADMIN">👑 ADMIN (Quản trị viên)</option>
+            </select>
+          </div>
+          <div class="form-group" id="admin-secret-group" style="display:none;">
+            <label>Mã bảo mật Admin (mẹo: admin123)</label>
+            <input type="password" id="reg-admin-secret">
+          </div>
+          <button class="btn-submit" style="background:#10B981;" onclick="doRegister()">Tạo tài khoản & Đăng nhập ➔</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal-overlay" id="history-modal">
+      <div class="modal-card" style="max-height:80%;">
+        <div style="padding:14px;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;">
+          <b style="font-size:16px;">📜 Lịch Sử Chat Chi Tiết</b>
+          <button class="btn-icon" onclick="closeHistoryModal()" style="width:28px;height:28px;">✕</button>
+        </div>
+        <div style="padding:10px 14px;">
+          <input type="text" id="history-search" placeholder="🔍 Tìm kiếm tin nhắn..." oninput="filterHistory()" style="width:100%;padding:8px 12px;border:1px solid #CBD5E1;border-radius:10px;font-size:13px;outline:none;">
+        </div>
+        <div id="history-list" style="flex:1;overflow-y:auto;padding:0 14px 14px 14px;font-size:13px;display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let ws = null;
+    let myUsername = '';
+    let myRole = 'USER';
+    let targetRecipient = null;
+    let selectedOnlineUser = null;
+    let onlineUsersList = [];
+    let allHistoryLines = [];
+
+    const AVATAR_COLORS = ['#EC4899', '#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#14B8A6', '#6366F1'];
+
+    function getAvatarColor(name) {
+      if (!name) return AVATAR_COLORS[0];
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    }
+
+    // Connect WebSocket
+    function connectWebSocket(callback) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        callback();
+        return;
+      }
+      const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
+      const wsUrl = protocol + location.host;
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        callback();
+      };
+
+      ws.onmessage = (event) => {
+        handleIncomingPacket(event.data);
+      };
+
+      ws.onerror = (err) => {
+        console.error('WS Error:', err);
+      };
+
+      ws.onclose = () => {
+        document.getElementById('room-subtitle').textContent = '🔴 Đã ngắt kết nối khỏi máy chủ';
+      };
+    }
+
+    // Parse packet
+    function handleIncomingPacket(packet) {
+      const idx = packet.indexOf('|');
+      const type = idx !== -1 ? packet.substring(0, idx).toUpperCase() : packet.toUpperCase();
+      const content = idx !== -1 ? packet.substring(idx + 1) : '';
+
+      switch (type) {
+        case 'LOGIN_OK': {
+          const parts = content.split('|');
+          myRole = parts[0].toUpperCase();
+          document.getElementById('auth-modal').classList.remove('active');
+          document.getElementById('room-title').innerHTML = `Tour Crew ${myRole === 'ADMIN' ? '👑 [ADMIN]' : ''}`;
+          document.getElementById('room-subtitle').textContent = `🟢 Bạn là ${myUsername} (${myRole})`;
+          if (myRole === 'ADMIN') {
+            document.getElementById('admin-controls').style.display = 'flex';
+          }
+          ws.send('ONLINE');
+          break;
+        }
+        case 'LOGIN_FAIL':
+          alert('Đăng nhập thất bại: ' + content);
+          break;
+        case 'REGISTER_OK':
+          alert(content + '\nĐang đăng nhập...');
+          break;
+        case 'REGISTER_FAIL':
+          alert('Đăng ký thất bại: ' + content);
+          break;
+        case 'CHAT':
+          renderChatBubble(content);
+          break;
+        case 'PRIVATE':
+          renderPrivateBubble(content);
+          break;
+        case 'ONLINE_LIST':
+          updateOnlineUsers(content);
+          break;
+        case 'SERVER':
+          renderSystemPill(content);
+          if (content.includes('tham gia') || content.includes('thoát') || content.includes('kick')) {
+            ws.send('ONLINE');
+          }
+          break;
+        case 'HISTORY':
+          if (content.startsWith('---') || content.includes('LỊCH SỬ')) {
+            renderSystemPill(content);
+          } else {
+            renderChatBubble(content);
+            allHistoryLines.push(content);
+          }
+          break;
+        case 'FULL_HISTORY_ITEM':
+          allHistoryLines.push(content);
+          break;
+        case 'KICKED':
+          alert(content);
+          logout();
+          break;
+      }
+    }
+
+    // Render Bubbles
+    function renderChatBubble(content) {
+      // [15:10:00] [ROLE-username]: message
+      const regex = /^\[(.*?)\] \[(.*?)-(.*?)\:\s*(.*)$/;
+      const match = content.match(regex);
+      const stream = document.getElementById('chat-stream');
+
+      if (match) {
+        const time = match[1];
+        const role = match[2];
+        const sender = match[3];
+        const msg = match[4];
+        const isMe = sender.toLowerCase() === myUsername.toLowerCase();
+
+        const row = document.createElement('div');
+        row.className = `msg-row ${isMe ? 'me' : 'other'}`;
+
+        if (!isMe) {
+          const avatar = document.createElement('div');
+          avatar.className = 'user-avatar';
+          avatar.style.background = getAvatarColor(sender);
+          avatar.textContent = sender[0].toUpperCase();
+          row.appendChild(avatar);
+        }
+
+        const col = document.createElement('div');
+        col.className = 'bubble-col';
+
+        if (!isMe) {
+          const nameLbl = document.createElement('div');
+          nameLbl.className = `msg-sender ${role === 'ADMIN' ? 'admin' : ''}`;
+          nameLbl.textContent = (role === 'ADMIN' ? '👑 ' : '') + sender + (role === 'ADMIN' ? ' [ADMIN]' : '');
+          col.appendChild(nameLbl);
+        }
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.textContent = msg;
+        col.appendChild(bubble);
+
+        const timeLbl = document.createElement('div');
+        timeLbl.className = 'msg-time';
+        timeLbl.textContent = time;
+        col.appendChild(timeLbl);
+
+        row.appendChild(col);
+        stream.appendChild(row);
+      } else {
+        renderSystemPill(content);
+      }
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function renderPrivateBubble(content) {
+      // [15:10:00] [Mật từ duy]: alo
+      const regex = /^\[(.*?)\] \[(Mật từ|Mật tới) (.*?)\:\s*(.*)$/;
+      const match = content.match(regex);
+      const stream = document.getElementById('chat-stream');
+
+      if (match) {
+        const time = match[1];
+        const direction = match[2];
+        const other = match[3];
+        const msg = match[4];
+        const isMe = direction === 'Mật tới';
+
+        const row = document.createElement('div');
+        row.className = `msg-row ${isMe ? 'me' : 'other'} private`;
+
+        if (!isMe) {
+          const avatar = document.createElement('div');
+          avatar.className = 'user-avatar';
+          avatar.style.background = getAvatarColor(other);
+          avatar.textContent = other[0].toUpperCase();
+          row.appendChild(avatar);
+        }
+
+        const col = document.createElement('div');
+        col.className = 'bubble-col';
+
+        const tag = document.createElement('div');
+        tag.className = 'msg-sender';
+        tag.style.color = '#7C3AED';
+        tag.textContent = isMe ? `🔒 Nhắn mật tới @${other}` : `🔒 Nhắn mật từ @${other}`;
+        col.appendChild(tag);
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.textContent = msg;
+        col.appendChild(bubble);
+
+        const timeLbl = document.createElement('div');
+        timeLbl.className = 'msg-time';
+        timeLbl.textContent = time;
+        col.appendChild(timeLbl);
+
+        row.appendChild(col);
+        stream.appendChild(row);
+      }
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function renderSystemPill(text) {
+      const stream = document.getElementById('chat-stream');
+      const row = document.createElement('div');
+      row.className = 'msg-row system';
+      const pill = document.createElement('div');
+      pill.className = 'system-pill';
+      pill.textContent = '📢 ' + text;
+      row.appendChild(pill);
+      stream.appendChild(row);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    // Send Message
+    function sendMessage() {
+      const input = document.getElementById('msg-input');
+      const text = input.value.trim();
+      if (!text || !ws) return;
+
+      if (targetRecipient) {
+        ws.send(`MSG_PRIVATE|${targetRecipient}|${text}`);
+      } else {
+        ws.send(`MSG_ALL|${text}`);
+      }
+      input.value = '';
+      input.focus();
+    }
+
+    document.getElementById('msg-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    function addEmoji(emo) {
+      const input = document.getElementById('msg-input');
+      input.value += emo;
+      input.focus();
+    }
+
+    // Online Users
+    function updateOnlineUsers(raw) {
+      onlineUsersList = [];
+      if (raw.trim()) {
+        const tokens = raw.split(',');
+        tokens.forEach(t => {
+          const p = t.split(':');
+          if (p[0]) onlineUsersList.push({ name: p[0].trim(), role: p[1] ? p[1].trim() : 'USER' });
+        });
+      }
+
+      document.getElementById('online-count').textContent = onlineUsersList.length;
+      document.getElementById('room-subtitle').textContent = `🟢 ${onlineUsersList.length} thành viên đang hoạt động • ${myUsername}`;
+
+      const list = document.getElementById('drawer-list');
+      list.innerHTML = '';
+      onlineUsersList.forEach(u => {
+        const isMe = u.name.toLowerCase() === myUsername.toLowerCase();
+        const item = document.createElement('div');
+        item.className = 'drawer-item';
+        item.innerHTML = `
+          <div class="user-avatar" style="background:${getAvatarColor(u.name)};width:30px;height:30px;font-size:12px;">${u.name[0].toUpperCase()}</div>
+          <div class="drawer-item-info">
+            <div class="drawer-item-name">${u.name} ${isMe ? '(Bạn)' : ''} ${u.role === 'ADMIN' ? '👑' : ''}</div>
+            <div class="drawer-item-role">${u.role === 'ADMIN' ? 'Quản trị viên' : 'Thành viên'}</div>
+          </div>
+          ${!isMe ? `<button class="btn-icon" style="width:28px;height:28px;font-size:12px;" onclick="startPM('${u.name}')">💬</button>` : ''}
+        `;
+        item.onclick = (e) => {
+          if (!isMe) {
+            selectedOnlineUser = u.name;
+          }
+        };
+        list.appendChild(item);
+      });
+    }
+
+    function startPM(target) {
+      targetRecipient = target;
+      const tag = document.getElementById('recipient-tag');
+      tag.className = 'recipient-tag private';
+      tag.innerHTML = `🔒 @${target} <span style="font-size:10px;">✕</span>`;
+      toggleDrawer();
+      document.getElementById('msg-input').focus();
+    }
+
+    function resetToPublic() {
+      targetRecipient = null;
+      const tag = document.getElementById('recipient-tag');
+      tag.className = 'recipient-tag';
+      tag.textContent = '🌐 Tất cả phòng';
+      document.getElementById('msg-input').focus();
+    }
+
+    function toggleDrawer() {
+      document.getElementById('online-drawer').classList.toggle('open');
+    }
+
+    // Login & Register
+    function switchTab(tab) {
+      document.getElementById('tab-login-btn').className = `tab-btn ${tab === 'login' ? 'active' : ''}`;
+      document.getElementById('tab-reg-btn').className = `tab-btn ${tab === 'reg' ? 'active' : ''}`;
+      document.getElementById('login-tab').className = `tab-body ${tab === 'login' ? 'active' : ''}`;
+      document.getElementById('reg-tab').className = `tab-body ${tab === 'reg' ? 'active' : ''}`;
+    }
+
+    function quickFill(user, pass) {
+      document.getElementById('login-user').value = user;
+      document.getElementById('login-pass').value = pass;
+    }
+
+    function checkAdminSecret() {
+      const role = document.getElementById('reg-role').value;
+      document.getElementById('admin-secret-group').style.display = role === 'ADMIN' ? 'flex' : 'none';
+    }
+
+    function doLogin() {
+      const u = document.getElementById('login-user').value.trim();
+      const p = document.getElementById('login-pass').value.trim();
+      if (!u || !p) { alert('Vui lòng nhập tài khoản và mật khẩu!'); return; }
+
+      myUsername = u;
+      connectWebSocket(() => {
+        ws.send(`LOGIN|${u}|${p}`);
+      });
+    }
+
+    function doRegister() {
+      const u = document.getElementById('reg-user').value.trim();
+      const p = document.getElementById('reg-pass').value.trim();
+      const conf = document.getElementById('reg-conf-pass').value.trim();
+      const role = document.getElementById('reg-role').value;
+      const secret = document.getElementById('reg-admin-secret').value.trim();
+
+      if (!u || !p) { alert('Tài khoản và mật khẩu không được để trống!'); return; }
+      if (p !== conf) { alert('Mật khẩu xác nhận không khớp!'); return; }
+      if (role === 'ADMIN' && secret !== 'admin123') { alert('Mã bí mật Admin không chính xác!'); return; }
+
+      connectWebSocket(() => {
+        ws.send(`REGISTER|${u}|${p}|${role}`);
+        setTimeout(() => {
+          myUsername = u;
+          ws.send(`LOGIN|${u}|${p}`);
+        }, 300);
+      });
+    }
+
+    function logout() {
+      if (ws) ws.close();
+      location.reload();
+    }
+
+    // Admin Actions
+    function adminAction(action) {
+      if (!selectedOnlineUser && action !== 'clear') {
+        alert('Vui lòng bấm chọn một người dùng trong danh sách trên trước!');
+        return;
+      }
+      if (action === 'kick') {
+        if (confirm(`Bạn có chắc muốn KICK tài khoản [${selectedOnlineUser}]?`)) {
+          ws.send(`ADMIN_KICK|${selectedOnlineUser}`);
+        }
+      } else if (action === 'mute') {
+        ws.send(`ADMIN_MUTE|${selectedOnlineUser}|true`);
+      } else if (action === 'unmute') {
+        ws.send(`ADMIN_MUTE|${selectedOnlineUser}|false`);
+      } else if (action === 'clear') {
+        if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử phòng chat?')) {
+          ws.send('ADMIN_CLEAR_HISTORY');
+          document.getElementById('chat-stream').innerHTML = '';
+        }
+      }
+    }
+
+    // History Modal
+    function openHistoryModal() {
+      const modal = document.getElementById('history-modal');
+      modal.classList.add('active');
+      filterHistory();
+    }
+    function closeHistoryModal() {
+      document.getElementById('history-modal').classList.remove('active');
+    }
+    function filterHistory() {
+      const q = document.getElementById('history-search').value.toLowerCase();
+      const list = document.getElementById('history-list');
+      list.innerHTML = '';
+      const filtered = allHistoryLines.filter(l => !q || l.toLowerCase().includes(q));
+      if (filtered.length === 0) {
+        list.innerHTML = '<div style="color:#94A3B8;text-align:center;padding:20px;">Không tìm thấy tin nhắn nào!</div>';
+        return;
+      }
+      filtered.forEach(line => {
+        const item = document.createElement('div');
+        item.style.padding = '6px 8px';
+        item.style.background = '#F8FAFC';
+        item.style.borderRadius = '8px';
+        item.style.border = '1px solid #E2E8F0';
+        item.textContent = line;
+        list.appendChild(item);
+      });
+    }
+  </script>
+</body>
+</html>
