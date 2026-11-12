@@ -1,0 +1,10 @@
+cloudflared.exe
+*.class
+chat.db*
+chat_client.jar
+chat_server.jar
+*.bat
+*.log
+.git
+.vscode
+

@@ -1,0 +1,954 @@
+/* ==========================================================================
+   MULTI-CLIENT CLOUD CHAT - MODERN NEUMORPHIC & PASTEL CSS
+   ========================================================================== */
+
+:root {
+    --bg-main: #f0f4fc;
+    --card-bg: #ffffff;
+    --primary-blue: #2563eb;
+    --primary-blue-gradient: linear-gradient(135deg, #2575fc 0%, #1054e2 100%);
+    --pastel-own-msg: #d6e4ff;
+    --pastel-other-msg: #ffffff;
+    --pastel-private-msg: #f3e8ff;
+    --text-dark: #0f172a;
+    --text-body: #334155;
+    --text-muted: #64748b;
+    --border-light: #e2e8f0;
+    --online-green: #22c55e;
+    --shadow-neumorphic: 0 10px 25px -5px rgba(37, 117, 252, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+    --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.04);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-body);
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   1. MÀN HÌNH ĐĂNG NHẬP (NEUMORPHISM / SOFT UI)
+   ========================================================================== */
+.auth-wrapper {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f4f7fc 0%, #e9f0fa 100%);
+    overflow: hidden;
+}
+
+/* Khối cầu ánh sáng nền */
+.ambient-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(50px);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.orb-1 {
+    width: 260px;
+    height: 260px;
+    background: rgba(191, 219, 254, 0.6);
+    top: -60px;
+    left: -40px;
+}
+
+.orb-2 {
+    width: 220px;
+    height: 220px;
+    background: rgba(219, 234, 254, 0.5);
+    top: 15%;
+    right: 5%;
+}
+
+.orb-3 {
+    width: 280px;
+    height: 280px;
+    background: rgba(199, 210, 254, 0.4);
+    bottom: -60px;
+    right: -40px;
+}
+
+/* Thẻ Neumorphic Card */
+.neumorphic-card {
+    position: relative;
+    z-index: 2;
+    width: 380px;
+    max-width: 90vw;
+    background: #ffffff;
+    border-radius: 36px;
+    padding: 32px 28px;
+    box-shadow: 0 20px 40px rgba(160, 185, 225, 0.25), 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Logo Squircle */
+.logo-squircle {
+    width: 82px;
+    height: 82px;
+    background: linear-gradient(145deg, #ffffff, #f0f4fd);
+    border-radius: 28px;
+    box-shadow: 6px 6px 14px #d6e1f2, -6px -6px 14px #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.logo-svg {
+    width: 58px;
+    height: 58px;
+}
+
+.auth-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+}
+
+.auth-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 22px;
+}
+
+#authForm {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Khung nhập liệu Neumorphic Pill */
+.neumorphic-input-box {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 4px 14px;
+    height: 48px;
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
+}
+
+.neumorphic-input-box:focus-within {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.neumorphic-input-box .input-icon {
+    font-size: 15px;
+    color: #94a3b8;
+    margin-right: 10px;
+}
+
+.neumorphic-input-box input,
+.neumorphic-input-box select {
+    border: none;
+    outline: none;
+    background: transparent;
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-dark);
+}
+
+.neumorphic-input-box .eye-toggle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    margin: 4px 4px 8px 4px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: var(--text-body);
+}
+
+.forgot-link {
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Nút Submit chính */
+.btn-gradient-pill {
+    width: 100%;
+    height: 50px;
+    background: var(--primary-blue-gradient);
+    border: none;
+    border-radius: 25px;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 8px 20px rgba(37, 117, 252, 0.35);
+    transition: all 0.2s ease;
+    margin-top: 4px;
+}
+
+.btn-gradient-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(37, 117, 252, 0.45);
+}
+
+.btn-gradient-pill .arrow-badge {
+    position: absolute;
+    right: 8px;
+    width: 34px;
+    height: 34px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+/* Phân cách OR CONTINUE WITH */
+.divider-text {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    margin: 18px 0 14px 0;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.divider-text::before,
+.divider-text::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+}
+
+.divider-text span {
+    padding: 0 12px;
+}
+
+/* Hàng nút mạng xã hội */
+.social-row {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.social-squircle {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(145deg, #ffffff, #f4f7fc);
+    border-radius: 16px;
+    border: 1px solid #e8effa;
+    box-shadow: 4px 4px 10px #d8e3f4, -4px -4px 10px #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.social-squircle:hover {
+    transform: translateY(-2px);
+    box-shadow: 5px 5px 12px #cfddf2, -5px -5px 12px #ffffff;
+}
+
+.toggle-mode-text {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.toggle-mode-text a {
+    color: var(--primary-blue);
+    text-decoration: none;
+    margin-left: 4px;
+}
+
+.auth-status {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 10px;
+}
+
+
+/* ==========================================================================
+   2. GIAO DIỆN CHAT 3 CỘT (DRIBBLE 100%)
+   ========================================================================== */
+.chat-app {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+/* CỘT 1: SIDEBAR TRÁI */
+.sidebar-left {
+    width: 300px;
+    background: #f8fafc;
+    border-right: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 14px;
+    flex-shrink: 0;
+}
+
+.user-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.avatar-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 16px;
+}
+
+.gradient-avatar {
+    background: linear-gradient(135deg, #f97316 0%, #ec4899 100%);
+}
+
+.user-info-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.greeting-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.user-display-name {
+    font-size: 15px;
+    color: var(--text-dark);
+}
+
+.btn-circle-add {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--primary-blue);
+    color: #ffffff;
+    border: none;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    transition: transform 0.2s ease;
+}
+
+.btn-circle-add:hover {
+    transform: scale(1.08);
+}
+
+/* Search Pill */
+.search-pill-box {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 6px 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.search-pill-box input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    margin-left: 8px;
+    width: 100%;
+}
+
+.sidebar-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.section-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+/* Favourites Card */
+.favourites-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 14px 16px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.favourites-card.active {
+    border-color: #bfdbfe;
+    background: #ffffff;
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.1);
+}
+
+.fav-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.fav-title {
+    font-size: 15px;
+    color: var(--text-dark);
+}
+
+.fav-meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+.fav-online-tag {
+    color: var(--online-green);
+    font-weight: 600;
+}
+
+.avatar-stack-row {
+    display: flex;
+    align-items: center;
+}
+
+.stack-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    margin-right: -8px;
+    display: inline-block;
+}
+
+.s1 { background: #3b82f6; }
+.s2 { background: #8b5cf6; }
+.s3 { background: #ec4899; }
+.s4 { background: #10b981; }
+
+.stack-badge {
+    background: #e0f2fe;
+    color: #0369a1;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 12px;
+    padding: 2px 6px;
+    margin-left: 14px;
+}
+
+/* Groups List */
+.groups-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.group-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.group-item:hover {
+    background: #f1f5f9;
+}
+
+.group-item.active {
+    background: #e2e8f0;
+}
+
+.group-icon-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.group-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.group-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.group-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+
+/* CỘT 2: KHUNG CHAT TRUNG TÂM */
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    position: relative;
+}
+
+.chat-header {
+    height: 68px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.active-group-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.active-group-subtitle {
+    font-size: 11px;
+    color: var(--online-green);
+    margin-top: 2px;
+}
+
+.chat-header-right {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-pill-small {
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-pill-small.primary {
+    background: var(--primary-blue);
+    color: #ffffff;
+}
+
+.btn-pill-small.secondary {
+    background: #f1f5f9;
+    color: var(--text-body);
+}
+
+.btn-pill-small.danger {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+/* Vùng cuộn tin nhắn */
+.chat-messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Bong bóng tin nhắn */
+.message-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    max-width: 75%;
+}
+
+.message-row.mine {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.message-row.other {
+    align-self: flex-start;
+}
+
+.msg-bubble {
+    padding: 12px 18px;
+    border-radius: 20px;
+    font-size: 14px;
+    line-height: 1.45;
+    position: relative;
+    word-break: break-word;
+}
+
+.message-row.mine .msg-bubble {
+    background: var(--pastel-own-msg);
+    color: #1e3a8a;
+    border-bottom-right-radius: 4px;
+}
+
+.message-row.other .msg-bubble {
+    background: var(--pastel-other-msg);
+    color: var(--text-dark);
+    border: 1px solid #e2e8f0;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.msg-meta-row {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.message-row.mine .msg-meta-row {
+    justify-content: flex-end;
+}
+
+.msg-sender-name {
+    font-weight: 700;
+    font-size: 11px;
+    color: #3b82f6;
+    margin-bottom: 3px;
+}
+
+.msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* Input Bar Pill */
+.chat-input-wrapper {
+    padding: 14px 24px 20px 24px;
+    background: #ffffff;
+}
+
+.pill-chat-input-box {
+    display: flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid var(--border-light);
+    border-radius: 28px;
+    padding: 5px 10px 5px 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.pill-chat-input-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    padding: 8px 10px;
+    color: var(--text-dark);
+}
+
+.action-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+}
+
+.btn-send-pill {
+    padding: 8px 20px;
+    border-radius: 20px;
+    background: var(--primary-blue);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+    transition: all 0.2s ease;
+}
+
+.btn-send-pill:hover {
+    background: #1d4ed8;
+}
+
+
+/* CỘT 3: SIDEBAR PHẢI (GROUP INFO & MEMBERS) */
+.sidebar-right {
+    width: 270px;
+    background: #ffffff;
+    border-left: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 16px;
+    flex-shrink: 0;
+}
+
+.group-info-top {
+    margin-bottom: 20px;
+}
+
+.ginfo-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.ginfo-sub {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.more-dots-btn {
+    background: transparent;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.ginfo-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.ginfo-details p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.members-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.members-header {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+}
+
+.members-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.member-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.member-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 12px;
+    color: #475569;
+}
+
+.member-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-dot.online { background: var(--online-green); }
+.status-dot.offline { background: #94a3b8; }
+
+
+/* ==========================================================================
+   3. MODAL HỘP THOẠI
+   ========================================================================== */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.modal-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 24px 28px;
+    width: 400px;
+    max-width: 90vw;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-card h3 {
+    font-size: 18px;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+}
+
+.modal-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    line-height: 1.4;
+}
+
+.modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.modal-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-body);
+}
+
+.modal-field input {
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 14px;
+    outline: none;
+}
+
+.modal-field input:focus {
+    border-color: var(--primary-blue);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+/* ==========================================================================
+   RESPONSIVE (MOBILE & TABLET)
+   ========================================================================== */
+@media (max-width: 900px) {
+    .sidebar-right {
+        display: none;
+    }
+}
+
+@media (max-width: 680px) {
+    .sidebar-left {
+        width: 80px;
+        padding: 12px 6px;
+        align-items: center;
+    }
+    .user-info-text,
+    .search-pill-box,
+    .section-label,
+    .fav-card-top,
+    .fav-meta-row,
+    .group-meta {
+        display: none;
+    }
+    .favourites-card {
+        padding: 8px;
+        border-radius: 50%;
+    }
+    .avatar-stack-row {
+        justify-content: center;
+    }
+}
+

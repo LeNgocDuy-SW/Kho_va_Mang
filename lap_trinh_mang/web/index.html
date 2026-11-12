@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Client Cloud Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ============================================================= -->
+    <!-- MÀN HÌNH 1: ĐĂNG NHẬP / ĐĂNG KÝ NEUMORPHISM (CHUẨN 100% MẪU) -->
+    <!-- ============================================================= -->
+    <div id="authScreen" class="auth-wrapper">
+        <!-- Các khối cầu ánh sáng nền mờ ảo -->
+        <div class="ambient-orb orb-1"></div>
+        <div class="ambient-orb orb-2"></div>
+        <div class="ambient-orb orb-3"></div>
+
+        <div class="neumorphic-card">
+            <!-- 1. Logo 3D Wave Squircle -->
+            <div class="logo-squircle">
+                <svg viewBox="0 0 80 80" class="logo-svg">
+                    <defs>
+                        <linearGradient id="gradDarkBlue" x1="0%" y1="100%" x2="50%" y2="0%">
+                            <stop offset="0%" stop-color="#0d47a1" />
+                            <stop offset="100%" stop-color="#2563eb" />
+                        </linearGradient>
+                        <linearGradient id="gradMidBlue" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#1d4ed8" />
+                            <stop offset="100%" stop-color="#60a5fa" />
+                        </linearGradient>
+                        <linearGradient id="gradLightBlue" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#bfdbfe" />
+                            <stop offset="100%" stop-color="#ffffff" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Left Wave -->
+                    <path d="M 28 58 C 16 46, 22 30, 36 22 C 28 32, 30 46, 38 52 Z" fill="url(#gradDarkBlue)" />
+                    <!-- Mid Wave -->
+                    <path d="M 36 62 C 26 44, 38 24, 48 16 C 42 28, 44 48, 52 56 C 46 62, 40 64, 36 62 Z" fill="url(#gradMidBlue)" />
+                    <!-- Right Wave -->
+                    <path d="M 48 54 C 42 40, 48 24, 60 14 C 56 26, 62 42, 54 50 Z" fill="url(#gradLightBlue)" />
+                </svg>
+            </div>
+
+            <!-- 2. Tiêu đề -->
+            <h1 id="authTitle" class="auth-title">Welcome Back</h1>
+            <p id="authSubtitle" class="auth-subtitle">Sign in to continue</p>
+
+            <!-- 3. Form nhập liệu -->
+            <form id="authForm" onsubmit="handleAuthSubmit(event)">
+                <!-- Ô Username / Email -->
+                <div class="neumorphic-input-box">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="authUsername" placeholder="Username or Email" required autocomplete="username">
+                </div>
+
+                <!-- Ô Password -->
+                <div class="neumorphic-input-box">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="authPassword" placeholder="Password" required autocomplete="current-password">
+                    <button type="button" class="eye-toggle" onclick="togglePasswordVisibility()" title="Ẩn/Hiện mật khẩu">👁</button>
+                </div>
+
+                <!-- Ô Role Selector (Chỉ hiện khi Đăng ký) -->
+                <div id="roleSelectRow" class="neumorphic-input-box" style="display: none;">
+                    <span class="input-icon">⭐</span>
+                    <select id="authRole">
+                        <option value="USER">USER (Người dùng thường)</option>
+                        <option value="ADMIN">ADMIN (Quản trị viên)</option>
+                    </select>
+                </div>
+
+                <!-- Hàng Remember Me & Forgot Password -->
+                <div class="form-row" id="rememberRow">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="rememberMe" checked>
+                        <span class="custom-checkbox"></span>
+                        <span class="label-text">Remember Me</span>
+                    </label>
+                    <a href="javascript:void(0)" onclick="alert('Vui lòng liên hệ Quản trị viên hoặc dùng chức năng đổi mật khẩu trong phòng chat!')" class="forgot-link">Forgot Password?</a>
+                </div>
+
+                <!-- Nút Submit chính -->
+                <button type="submit" id="btnMainAuth" class="btn-gradient-pill">
+                    <span id="btnAuthText">Login</span>
+                    <span class="arrow-badge">→</span>
+                </button>
+            </form>
+
+            <!-- Dòng phân cách -->
+            <div class="divider-text">
+                <span>OR CONTINUE WITH</span>
+            </div>
+
+            <!-- 4 Nút Squircle Neumorphic -->
+            <div class="social-row">
+                <button type="button" class="social-squircle" onclick="alert('Đăng nhập nhanh Google SSO (Mô phỏng đồ án)')" title="Google">
+                    <span style="color:#ea4335; font-weight:bold; font-size:18px;">G</span>
+                </button>
+                <button type="button" class="social-squircle" onclick="alert('Đăng nhập Discord (Mô phỏng đồ án)')" title="Discord">
+                    <span style="font-size:16px;">🎮</span>
+                </button>
+                <button type="button" class="social-squircle" onclick="alert('Đăng nhập Facebook (Mô phỏng đồ án)')" title="Facebook">
+                    <span style="color:#1877f2; font-weight:bold; font-size:19px;">f</span>
+                </button>
+                <button type="button" class="social-squircle" onclick="showServerInfoModal()" title="Thông tin máy chủ">
+                    <span style="color:#64748b; font-size:16px;">⚙</span>
+                </button>
+            </div>
+
+            <!-- Link chuyển đổi Đăng nhập / Đăng ký -->
+            <div class="toggle-mode-text">
+                <span id="togglePrompt">Don't have an account?</span>
+                <a href="javascript:void(0)" onclick="toggleAuthMode()" id="toggleActionLink"><b>Sign up</b></a>
+            </div>
+
+            <!-- Thông báo lỗi / trạng thái -->
+            <div id="authStatus" class="auth-status">● Sẵn sàng kết nối máy chủ</div>
+        </div>
+    </div>
+
+
+    <!-- ============================================================= -->
+    <!-- MÀN HÌNH 2: GIAO DIỆN PHÒNG CHAT 3 CỘT (CHUẨN DRIBBLE MẪU)    -->
+    <!-- ============================================================= -->
+    <div id="chatScreen" class="chat-app" style="display: none;">
+        
+        <!-- CỘT 1: SIDEBAR TRÁI (PROFILE, TÌM KIẾM, FAVOURITES, GROUPS) -->
+        <aside class="sidebar-left">
+            <!-- Header User Profile -->
+            <div class="user-profile-header">
+                <div class="user-avatar-wrap">
+                    <div class="avatar-circle gradient-avatar" id="myAvatar">U</div>
+                </div>
+                <div class="user-info-text">
+                    <span class="greeting-sub">Hello there</span>
+                    <strong class="user-display-name" id="myDisplayName">Username</strong>
+                </div>
+                <button class="btn-circle-add" onclick="openCreateGroupModal()" title="Tạo nhóm mới">+</button>
+            </div>
+
+            <!-- Pill Search -->
+            <div class="search-pill-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="txtSearchSidebar" placeholder="Search" oninput="filterSidebarGroups()">
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="sidebar-scroll-area">
+                <!-- Favourites Header -->
+                <div class="section-label">Favourites</div>
+
+                <!-- Favourites Card Nổi bật -->
+                <div class="favourites-card active" id="favCard" onclick="selectGroup('Friends & Family')">
+                    <div class="fav-card-top">
+                        <strong class="fav-title">Friends & Family</strong>
+                        <span class="msg-bubble-badge" id="favBadge" style="display:none;">1</span>
+                    </div>
+                    <div class="fav-meta-row">
+                        <span class="fav-date">📅 25 Jun, 2022</span>
+                        <span class="fav-online-tag" id="favOnlineTag">🟢 1 Online</span>
+                    </div>
+                    <div class="avatar-stack-row">
+                        <span class="stack-avatar s1"></span>
+                        <span class="stack-avatar s2"></span>
+                        <span class="stack-avatar s3"></span>
+                        <span class="stack-avatar s4"></span>
+                        <span class="stack-badge">+5</span>
+                    </div>
+                </div>
+
+                <!-- Groups Section -->
+                <div class="section-label" style="margin-top: 18px;">Groups (Yêu Cầu Mã)</div>
+                <div class="groups-list" id="groupsContainer">
+                    <!-- Danh sách nhóm được nạp động từ server -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- CỘT 2: KHUNG CHAT TRUNG TÂM (STAGE, TIN NHẮN, PILL INPUT) -->
+        <main class="chat-main">
+            <!-- Chat Header -->
+            <header class="chat-header">
+                <div class="chat-header-left">
+                    <h2 class="active-group-title" id="activeChatTitle">Friends & Family</h2>
+                    <span class="active-group-subtitle" id="activeChatSubtitle">🟢 1 Online</span>
+                </div>
+                <div class="chat-header-right">
+                    <button class="btn-pill-small secondary" onclick="openCreateGroupModal()">✨ Tạo Nhóm</button>
+                    <button class="btn-pill-small danger" onclick="doLogout()">🚪 Đăng Xuất</button>
+                </div>
+            </header>
+
+            <!-- Khung bong bóng tin nhắn -->
+            <div class="chat-messages-container" id="messagesContainer">
+                <!-- Tin nhắn hiển thị tại đây -->
+            </div>
+
+            <!-- Thanh nhập tin nhắn Pill dưới đáy -->
+            <footer class="chat-input-wrapper">
+                <div class="pill-chat-input-box">
+                    <button type="button" class="action-btn" onclick="openEmojiPicker()" title="Chèn biểu tượng cảm xúc">😊</button>
+                    <input type="text" id="txtChatMessage" placeholder="Type a message..." autocomplete="off" onkeydown="handleInputKeyDown(event)">
+                    <button type="button" class="btn-send-pill" onclick="sendActiveMessage()">Send</button>
+                </div>
+            </footer>
+        </main>
+
+        <!-- CỘT 3: SIDEBAR PHẢI (GROUP INFO & MEMBERS) -->
+        <aside class="sidebar-right">
+            <div class="group-info-top">
+                <div class="ginfo-header-row">
+                    <span class="ginfo-sub">Group Info</span>
+                    <button class="more-dots-btn" onclick="showOptionsMenu()">•••</button>
+                </div>
+                <h3 class="ginfo-name" id="rightGroupTitle">Friends & Family</h3>
+                <div class="ginfo-details">
+                    <p>👥 Group details: Phòng chat bảo mật</p>
+                    <p>📅 25 Jun, 2022</p>
+                </div>
+            </div>
+
+            <div class="members-section">
+                <div class="members-header" id="membersCountLabel">Members (1)</div>
+                <div class="members-list" id="membersContainer">
+                    <!-- Danh sách thành viên nạp động -->
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+
+    <!-- ============================================================= -->
+    <!-- MODALS HỘP THOẠI (TẠO NHÓM, NHẬP MÃ PIN, CẤU HÌNH)             -->
+    <!-- ============================================================= -->
+
+    <!-- Modal 1: Tạo Nhóm Mới Có Mã PIN -->
+    <div id="modalCreateGroup" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <h3>✨ Tạo Nhóm Mới</h3>
+            <p class="modal-desc">Đặt tên nhóm và mã PIN bảo mật để chỉ những ai có mã mới có thể tham gia.</p>
+            <div class="modal-field">
+                <label>Tên Nhóm:</label>
+                <input type="text" id="newGroupName" placeholder="Ví dụ: Team Alpha, DevOps..." required>
+            </div>
+            <div class="modal-field">
+                <label>Mã PIN Nhóm (Mã bảo mật):</label>
+                <input type="text" id="newGroupCode" placeholder="Ví dụ: 1234, 8888..." required>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-pill-small secondary" onclick="closeModal('modalCreateGroup')">Hủy</button>
+                <button type="button" class="btn-pill-small primary" onclick="submitCreateGroup()">Tạo Nhóm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Nhập Mã PIN Để Vào Nhóm -->
+    <div id="modalJoinGroup" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <h3>🔐 Nhập Mã PIN Nhóm</h3>
+            <p class="modal-desc" id="joinGroupDesc">Nhóm này được bảo vệ. Vui lòng nhập mã PIN để mở khóa và tham gia trò chuyện.</p>
+            <div class="modal-field">
+                <label>Mã PIN Nhóm:</label>
+                <input type="password" id="joinGroupInputCode" placeholder="Nhập mã PIN..." required>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-pill-small secondary" onclick="closeModal('modalJoinGroup')">Hủy</button>
+                <button type="button" class="btn-pill-small primary" onclick="submitJoinGroup()">Vào Nhóm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
